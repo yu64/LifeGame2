@@ -20,7 +20,10 @@ public class SquareRender implements Drawable{
 
 	}
 
-	public void setSquareSize(int squareW, int square)
+	public void setSquareSize(int squareW, int squareH)
+	{
+
+	}
 
 	@Override
 	public void draw(Graphics2D g2)
