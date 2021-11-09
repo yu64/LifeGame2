@@ -73,10 +73,10 @@ public class View {
 	{
 		Dimension s = this.app.getWindow().getScreenSize();
 		int w = s.width;
-		int h = s.height;
+		int h = s.height - View.MENU_HEIGHT;
 
 		this.temp1.setLocation(0, 0);
-		this.temp2.setLocation(w, h - View.MENU_HEIGHT);
+		this.temp2.setLocation(w, h);
 		Point p1 = this.temp1;
 		Point p2 = this.temp2;
 
@@ -92,30 +92,30 @@ public class View {
 			e.printStackTrace();
 		}
 
-		g2.setColor(Color.BLACK);
-		g2.fillRect(0, 0, w, h);
-
-
-		g2.setColor(Color.GREEN);
 		CellData data = this.model.getData();
 		int chunkWidth = data.getChunkWidth();
 		int cellSize = 16;
 
-		int minCellX = (int) Math.floor(p1.x / cellSize);
-		int minCellY = (int) Math.floor(p1.y / cellSize);
-		int maxCellX = (int) Math.floor(p2.x / cellSize);
-		int maxCellY = (int) Math.floor(p2.y / cellSize);
-
-		int minChunkX = (int)Math.floor(minCellX / chunkWidth);
-		int minChunkY = minCellY;
-		int maxChunkX = (int)Math.ceil(maxCellX / chunkWidth);
-		int maxChunkY = maxCellY;
+		int minX = (int) Math.floor(p1.x / cellSize) - 1;
+		int minY = (int) Math.floor(p1.y / cellSize) - 1;
+		int maxX = (int) Math.ceil(p2.x / cellSize) + 1;
+		int maxY = (int) Math.ceil(p2.y / cellSize) + 1;
 
 
-		for(int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
+
+		g2.setColor(Color.BLACK);
+		g2.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+
+
+		g2.setColor(Color.GREEN);
+
+		for(int x = minX; x <= maxX; x++)
 		{
-			for(int chunkY = minChunkY; chunkY <= maxChunkY; chunkY++)
+			for(int y = minY; y <= maxY; y++)
 			{
+				int chunkX = x / chunkWidth;
+				int chunkY = y;
+
 				long chunk = data.get(chunkX, chunkY);
 
 				if(chunk == 0L)
@@ -126,7 +126,14 @@ public class View {
 				if(chunk == 0xFFFF_FFFF_FFFF_FFFFL)
 				{
 					int cellX = chunkX * chunkWidth;
-					g2.fillRect(cellX * cellSize, chunkY * cellSize, cellSize * chunkWidth, cellSize);
+
+					g2.fillRect(
+							cellX * cellSize,
+							chunkY * cellSize,
+							cellSize * chunkWidth,
+							cellSize
+							);
+
 					continue;
 				}
 
@@ -136,19 +143,44 @@ public class View {
 					int index = Long.bitCount(~(bit - 1) ) - 1;
 					int cellX = chunkX * chunkWidth + index;
 
-					g2.fillRect(cellX * cellSize, chunkY * cellSize, cellSize, cellSize);
+					g2.fillRect(
+							cellX * cellSize,
+							chunkY * cellSize,
+							cellSize,
+							cellSize
+							);
 
 					chunk = chunk & ~bit;
 				}
-
 			}
-
 		}
 
-		g2.setColor(Color.BLUE);
-		g2.drawRect(0, 0, w, h);
-		g2.drawOval(0, 0, w, h);
+		if(cellSize * t.getScaleX() < 2)
+		{
+			return;
+		}
 
+		g2.setColor(Color.DARK_GRAY);
+
+		for(int x = minX; x <= maxX; x++)
+		{
+			g2.drawLine(
+					x * cellSize,
+					minY * cellSize,
+					x * cellSize,
+					maxY * cellSize
+					);
+		}
+
+		for(int y = minY; y <= maxY; y++)
+		{
+			g2.drawLine(
+					minX * cellSize,
+					y * cellSize,
+					maxX * cellSize,
+					y * cellSize
+					);
+		}
 
 	}
 

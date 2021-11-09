@@ -32,6 +32,8 @@ public class Main {
 		CellData data = model.getData();
 		data.set(0x5555555555555555L, 0, 0);
 		data.set(0xFFFFFFFFFFFFFFFFL, 0, 5);
+		data.set(0xFFFFFFFFFFFFFFFFL, 1, 0);
+
 
 
 
