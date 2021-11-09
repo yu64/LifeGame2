@@ -126,7 +126,7 @@ public class View {
 				if(chunk == 0xFFFF_FFFF_FFFF_FFFFL)
 				{
 					int cellX = chunkX * chunkWidth;
-					g2.fillRect(cellX, chunkY, cellSize * chunkWidth, cellSize);
+					g2.fillRect(cellX * cellSize, chunkY * cellSize, cellSize * chunkWidth, cellSize);
 					continue;
 				}
 
@@ -136,7 +136,7 @@ public class View {
 					int index = Long.bitCount(~(bit - 1) ) - 1;
 					int cellX = chunkX * chunkWidth + index;
 
-					g2.fillRect(chunkX + cellX, chunkY, cellSize, cellSize);
+					g2.fillRect(cellX * cellSize, chunkY * cellSize, cellSize, cellSize);
 
 					chunk = chunk & ~bit;
 				}
@@ -144,12 +144,6 @@ public class View {
 			}
 
 		}
-
-		System.out.println("ce " + minCellX + " , " + minCellY);
-		System.out.println("ce " + maxCellX + " , " + maxCellY);
-
-		System.out.println(minChunkX + " , " + minChunkY);
-		System.out.println(maxChunkX + " , " + maxChunkY);
 
 		g2.setColor(Color.BLUE);
 		g2.drawRect(0, 0, w, h);
