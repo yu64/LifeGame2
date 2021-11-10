@@ -1,10 +1,11 @@
 package test;
 
+import java.awt.event.WindowEvent;
+
 import canvas2.App;
 import canvas2.event.EventManager;
-import canvas2.logic.AppLogic;
+import canvas2.event.awt.AwtListener;
 import canvas2.view.AppWindow;
-import canvas2.view.scene.Node;
 import test.controller.Controller;
 import test.model.CellData;
 import test.model.Model;
@@ -16,13 +17,14 @@ public class Main {
 	{
 		App app = new App();
 
-
 		AppWindow win = app.getWindow();
 		win.setLocationRelativeTo(null);
 
 		EventManager event = app.getEventManager();
-		AppLogic logic = app.getLogic();
-		Node root = app.getRootNode();
+		event.add(AwtListener.class, WindowEvent.WINDOW_CLOSING, (t, v) -> {
+
+			app.close();
+		});
 
 
 		Model model = new Model(app);
@@ -30,10 +32,7 @@ public class Main {
 		Controller con = new Controller(app, model, view);
 
 		CellData data = model.getData();
-		data.set(0x5555555555555555L, 0, 0);
-		data.set(0xFFFFFFFFFFFFFFFFL, 0, 5);
-		data.set(0xFFFFFFFFFFFFFFFFL, 1, 0);
-
+		data.set(0x7000_0000_0000_0000L, 0, 1);
 
 
 

@@ -11,6 +11,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import canvas2.App;
 import canvas2.event.EventManager;
 import canvas2.logic.AppLogic;
+import canvas2.util.GraphicsUtil;
 import canvas2.view.scene.Area;
 import canvas2.view.scene.Node;
 import test.model.CellData;
@@ -53,9 +54,9 @@ public class View {
 		root.add(this.area);
 
 
-		Node area = this.area.getInnerNode();
-		area.getTransform().translate(0, 0);
-		area.add(g2 -> this.drawArea(g2));
+		Node innerArea = this.area.getInnerNode();
+		innerArea.getTransform().translate(0, 0);
+		innerArea.add(g2 -> this.drawArea(g2));
 
 
 	}
@@ -71,15 +72,16 @@ public class View {
 
 	private void drawArea(Graphics2D g2)
 	{
+		//エリアの幅
 		Dimension s = this.app.getWindow().getScreenSize();
 		int w = s.width;
 		int h = s.height - View.MENU_HEIGHT;
 
+		//エリア内の描画範囲を求める。
 		this.temp1.setLocation(0, 0);
 		this.temp2.setLocation(w, h);
 		Point p1 = this.temp1;
 		Point p2 = this.temp2;
-
 
 		AffineTransform t = this.area.getInnerNode().getTransform();
 		try
@@ -92,6 +94,7 @@ public class View {
 			e.printStackTrace();
 		}
 
+		//セル単位で、画面の描画範囲を求める。
 		CellData data = this.model.getData();
 		int chunkWidth = data.getChunkWidth();
 		int cellSize = 16;
@@ -101,12 +104,16 @@ public class View {
 		int maxX = (int) Math.ceil(p2.x / cellSize) + 1;
 		int maxY = (int) Math.ceil(p2.y / cellSize) + 1;
 
-
-
+		//背景
 		g2.setColor(Color.BLACK);
-		g2.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+		g2.fillRect(
+				p1.x - 1,
+				p1.y - 1,
+				p2.x - p1.x + 2,
+				p2.y - p1.y + 2
+				);
 
-
+		//セルを描画する。
 		g2.setColor(Color.GREEN);
 
 		for(int x = minX; x <= maxX; x++)
@@ -155,32 +162,21 @@ public class View {
 			}
 		}
 
-		if(cellSize * t.getScaleX() < 2)
+		if(cellSize * t.getScaleX() < 3)
 		{
 			return;
 		}
 
 		g2.setColor(Color.DARK_GRAY);
 
-		for(int x = minX; x <= maxX; x++)
-		{
-			g2.drawLine(
-					x * cellSize,
-					minY * cellSize,
-					x * cellSize,
-					maxY * cellSize
-					);
-		}
-
-		for(int y = minY; y <= maxY; y++)
-		{
-			g2.drawLine(
-					minX * cellSize,
-					y * cellSize,
-					maxX * cellSize,
-					y * cellSize
-					);
-		}
+		GraphicsUtil.drawGrid(
+				g2,
+				minX * cellSize,
+				minY * cellSize,
+				(maxX - minX) * cellSize,
+				(maxY - minY) * cellSize,
+				cellSize
+				);
 
 	}
 
