@@ -1,15 +1,18 @@
 package test.view;
 
+import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 
 import canvas2.App;
 import canvas2.event.EventManager;
+import canvas2.event.awt.AwtListener;
 import canvas2.logic.AppLogic;
 import canvas2.util.GraphicsUtil;
 import canvas2.view.scene.Area;
@@ -28,12 +31,14 @@ public class View {
 	private Point temp1 = new Point();
 	private Point temp2 = new Point();
 
+	private Point mouse = new Point();
+
 	public View(App app, Model model)
 	{
 		this.app = app;
 		this.model = model;
 
-		EventManager event = app.getEventManager();
+
 		AppLogic logic = app.getLogic();
 
 		Dimension s = this.app.getWindow().getScreenSize();
@@ -45,7 +50,7 @@ public class View {
 
 		this.menu = new Node("menu");
 		this.menu.getTransform().translate(0, 0);
-		this.menu.add(g2 -> this.drawMenu(g2));
+		this.menu.add(this::drawMenu);
 		root.add(this.menu);
 
 		this.area = new Area("areaFrame", "area");
@@ -56,9 +61,11 @@ public class View {
 
 		Node innerArea = this.area.getInnerNode();
 		innerArea.getTransform().translate(0, 0);
-		innerArea.add(g2 -> this.drawArea(g2));
+		innerArea.add(this::drawArea);
+		innerArea.add(this::drawCursor);
 
-
+		EventManager event = app.getEventManager();
+		event.add(AwtListener.class, MouseEvent.MOUSE_MOVED, this::changeCursor);
 	}
 
 	private void drawMenu(Graphics2D g2)
@@ -97,7 +104,7 @@ public class View {
 		//セル単位で、画面の描画範囲を求める。
 		CellData data = this.model.getData();
 		int chunkWidth = data.getChunkWidth();
-		int cellSize = 16;
+		int cellSize = data.getCellSize();
 
 		int minX = (int) Math.floor(p1.x / cellSize) - 1;
 		int minY = (int) Math.floor(p1.y / cellSize) - 1;
@@ -180,7 +187,48 @@ public class View {
 
 	}
 
+	private void changeCursor(float tpf, AWTEvent awt)
+	{
+		if( !(awt instanceof AWTEvent) )
+		{
+			return;
+		}
 
+		AffineTransform t1 = this.area.getTransform();
+		AffineTransform t2 = this.area.getInnerNode().getTransform();
+
+		MouseEvent e = (MouseEvent) awt;
+		this.mouse.x = e.getX();
+		this.mouse.y = e.getY();
+
+
+		try
+		{
+			t1.inverseTransform(this.mouse, this.mouse);
+			t2.inverseTransform(this.mouse, this.mouse);
+		}
+		catch (NoninvertibleTransformException e1)
+		{
+			e1.printStackTrace();
+		}
+
+	}
+
+	private void drawCursor(Graphics2D g2)
+	{
+		CellData data = this.model.getData();
+		int cellSize = data.getCellSize();
+
+		Point p = this.mouse;
+
+		int minX = (p.x / cellSize) * cellSize;
+		int minY = (p.y / cellSize) * cellSize;
+
+		g2.setColor(Color.LIGHT_GRAY);
+		g2.drawRect(minX, minY, cellSize, cellSize);
+
+
+	}
 
 	public Node getMenu()
 	{

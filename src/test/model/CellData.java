@@ -19,16 +19,29 @@ public class CellData {
 		return 64;
 	}
 
+	public int getCellSize()
+	{
+		return 16;
+	}
+
 	public void clear()
 	{
 		this.data.clear();
 	}
 
-	public void setCell(boolean b, long x, long y, long cellY)
+	public void setCell(boolean b, long cellX, long cellY)
+	{
+		long chunkX = cellX / this.getChunkWidth();
+		cellX = cellX - (chunkX * this.getChunkWidth());
+
+		this.setCell(b, chunkX, cellY, cellX);
+	}
+
+	public void setCell(boolean b, long x, long y, long cellX)
 	{
 
 		long chunk = this.get(x, y);
-		long mask = 1 << cellY;
+		long mask = 1 << cellX;
 
 		if(b)
 		{

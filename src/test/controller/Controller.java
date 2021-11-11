@@ -1,9 +1,12 @@
 package test.controller;
 
 import java.awt.AWTEvent;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 
 import canvas2.App;
 import canvas2.event.EventManager;
@@ -40,14 +43,16 @@ public class Controller {
 				KeyEvent.VK_A,
 				KeyEvent.VK_S,
 				KeyEvent.VK_D
-
 				);
 
 		this.interval = new TimeInterval(500, this::step);
 
+		Class<AwtListener> awt = AwtListener.class;
+
 		EventManager event = app.getEventManager();
 		this.keys.registerTo(event);
-		event.add(MouseWheelEvent.MOUSE_WHEEL, (AwtListener)this::zoom);
+		event.add(awt, MouseWheelEvent.MOUSE_WHEEL, this::zoom);
+		event.add(awt, MouseEvent.MOUSE_PRESSED, this::changeCell);
 
 		AppLogic logic = app.getLogic();
 		logic.add(this::scroll);
@@ -113,9 +118,49 @@ public class Controller {
 			TransformUtil.scale(t, 1 / rate, 0, 0);
 		}
 
+	}
+
+	private void changeCell(float tpf, AWTEvent awt)
+	{
+		if( !(awt instanceof AWTEvent) )
+		{
+			return;
+		}
+
+		MouseEvent e = (MouseEvent) awt;
+		Point p = e.getPoint();
+		AffineTransform t = this.view.getArea().getInnerNode().getTransform();
+
+		try
+		{
+			t.inverseTransform(p, p);
+		}
+		catch (NoninvertibleTransformException e1)
+		{
+			e1.printStackTrace();
+		}
+
+		CellData data = this.model.getData();
+
+		int cellX = p.x / data.getCellSize();
+		int cellY = p.y / data.getCellSize();
+
+		System.out.println(cellX);
+		System.out.println(cellY);
+
+		if(e.getButton() == MouseEvent.BUTTON1)
+		{
+			data.setCell(true, cellX, cellY);
+		}
+
+		if(e.getButton() == MouseEvent.BUTTON2)
+		{
+			data.setCell(false, cellX, cellY);
+		}
 
 
 	}
+
 
 	private void step(float tpf)
 	{
@@ -143,6 +188,7 @@ public class Controller {
 			}
 		}
 
+		data.clear();
 		for(Output o : this.temp.iterable())
 		{
 			data.set(o.getValue(), o.getX(), o.getY());
@@ -171,7 +217,7 @@ public class Controller {
 		long downLeft = (down >>> 1) | (data.get(x, y, Direction.SOUTH_EAST) << (w - 1));
 		long downRight = (down << 1) | (data.get(x, y, Direction.SOUTH_WEST) >>> (w - 1));
 
-
+		//同じ位置のビットが周囲の状態と等しいはず。
 		long[] bitArray = new long[] {up, down, upLeft, upRight, left, right, downLeft, downRight};
 
 
