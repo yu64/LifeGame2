@@ -1,20 +1,19 @@
 package test.view;
 
-import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 import canvas2.App;
-import canvas2.event.EventManager;
-import canvas2.event.awt.AwtListener;
-import canvas2.logic.AppLogic;
+import canvas2.util.CastUtil;
 import canvas2.util.GraphicsUtil;
+import canvas2.util.Pool;
+import canvas2.util.TransformUtil;
 import canvas2.view.scene.Area;
 import canvas2.view.scene.Node;
 import test.model.CellData;
@@ -28,18 +27,29 @@ public class View {
 	private Node menu;
 	private Area area;
 
-	private Point temp1 = new Point();
-	private Point temp2 = new Point();
+	private Pool pool = new Pool();
 
-	private Point mouse = new Point();
 
 	public View(App app, Model model)
 	{
 		this.app = app;
 		this.model = model;
 
+		this.pool.register(
+				Point.class,
+				Point::new,
+				v -> v.setLocation(0, 0),
+				2,
+				2
+				);
 
-		AppLogic logic = app.getLogic();
+		this.pool.register(
+				ArrayList.class,
+				ArrayList::new,
+				v -> v.clear(),
+				1,
+				1
+				);
 
 		Dimension s = this.app.getWindow().getScreenSize();
 		int w = s.width;
@@ -64,8 +74,7 @@ public class View {
 		innerArea.add(this::drawArea);
 		innerArea.add(this::drawCursor);
 
-		EventManager event = app.getEventManager();
-		event.add(AwtListener.class, MouseEvent.MOUSE_MOVED, this::changeCursor);
+
 	}
 
 	private void drawMenu(Graphics2D g2)
@@ -85,21 +94,15 @@ public class View {
 		int h = s.height - View.MENU_HEIGHT;
 
 		//エリア内の描画範囲を求める。
-		this.temp1.setLocation(0, 0);
-		this.temp2.setLocation(w, h);
-		Point p1 = this.temp1;
-		Point p2 = this.temp2;
+		Point p1 = this.pool.obtain(Point.class);
+		Point p2 = this.pool.obtain(Point.class);
+		p1.setLocation(0, 0);
+		p2.setLocation(w, h);
 
 		AffineTransform t = this.area.getInnerNode().getTransform();
-		try
-		{
-			t.inverseTransform(p1, p1);
-			t.inverseTransform(p2, p2);
-		}
-		catch (NoninvertibleTransformException e)
-		{
-			e.printStackTrace();
-		}
+		TransformUtil.inverseTransform(t, p1, p1);
+		TransformUtil.inverseTransform(t, p2, p2);
+
 
 		//セル単位で、画面の描画範囲を求める。
 		CellData data = this.model.getData();
@@ -127,7 +130,7 @@ public class View {
 		{
 			for(int y = minY; y <= maxY; y++)
 			{
-				int chunkX = x / chunkWidth;
+				int chunkX = Math.floorDiv(x, chunkWidth);
 				int chunkY = y;
 
 				long chunk = data.get(chunkX, chunkY);
@@ -187,47 +190,53 @@ public class View {
 
 	}
 
-	private void changeCursor(float tpf, AWTEvent awt)
-	{
-		if( !(awt instanceof AWTEvent) )
-		{
-			return;
-		}
-
-		AffineTransform t1 = this.area.getTransform();
-		AffineTransform t2 = this.area.getInnerNode().getTransform();
-
-		MouseEvent e = (MouseEvent) awt;
-		this.mouse.x = e.getX();
-		this.mouse.y = e.getY();
-
-
-		try
-		{
-			t1.inverseTransform(this.mouse, this.mouse);
-			t2.inverseTransform(this.mouse, this.mouse);
-		}
-		catch (NoninvertibleTransformException e1)
-		{
-			e1.printStackTrace();
-		}
-
-	}
 
 	private void drawCursor(Graphics2D g2)
 	{
 		CellData data = this.model.getData();
 		int cellSize = data.getCellSize();
 
-		Point p = this.mouse;
-
-		int minX = (p.x / cellSize) * cellSize;
-		int minY = (p.y / cellSize) * cellSize;
+		Point cell = this.model.getAreaCell();
 
 		g2.setColor(Color.LIGHT_GRAY);
-		g2.drawRect(minX, minY, cellSize, cellSize);
+		g2.drawRect(
+				cell.x * cellSize,
+				cell.y * cellSize,
+				cellSize,
+				cellSize
+				);
+
+	}
 
 
+	public  Point2D inverseTransform(Node node, Point2D in, Point2D out)
+	{
+		Point2D temp = in;
+		synchronized(this.pool)
+		{
+			ArrayList<Node> list = CastUtil.cast(this.pool.obtain(ArrayList.class));
+
+			Node now = node;
+			while(now != null)
+			{
+				list.add(now);
+				now = now.getParent();
+			}
+
+
+			for(int i = list.size() - 1; 0 <= i; i--)
+			{
+				Node n = list.get(i);
+				AffineTransform t = n.getTransform();
+				temp = TransformUtil.inverseTransform(t, temp, out);
+			}
+
+			this.pool.free(list);
+
+		}
+
+
+		return temp;
 	}
 
 	public Node getMenu()

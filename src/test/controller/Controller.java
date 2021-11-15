@@ -6,7 +6,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 
 import canvas2.App;
 import canvas2.event.EventManager;
@@ -17,6 +16,7 @@ import canvas2.util.Direction;
 import canvas2.util.TransformUtil;
 import canvas2.value.KeyFlags;
 import canvas2.view.scene.Area;
+import canvas2.view.scene.Node;
 import test.model.CellData;
 import test.model.CellData.Output;
 import test.model.Model;
@@ -42,7 +42,8 @@ public class Controller {
 				KeyEvent.VK_W,
 				KeyEvent.VK_A,
 				KeyEvent.VK_S,
-				KeyEvent.VK_D
+				KeyEvent.VK_D,
+				KeyEvent.VK_SPACE
 				);
 
 		this.interval = new TimeInterval(500, this::step);
@@ -52,17 +53,28 @@ public class Controller {
 		EventManager event = app.getEventManager();
 		this.keys.registerTo(event);
 		event.add(awt, MouseWheelEvent.MOUSE_WHEEL, this::zoom);
-		event.add(awt, MouseEvent.MOUSE_PRESSED, this::changeCell);
+		event.add(awt, MouseEvent.MOUSE_CLICKED, this::clickCell);
+		event.add(awt, MouseEvent.MOUSE_MOVED, this::updateMouse);
 
 		AppLogic logic = app.getLogic();
 		logic.add(this::scroll);
 		logic.add(this.interval);
+	}
 
+	private void pause(float tpf)
+	{
+		if(this.keys.isPressed(KeyEvent.VK_SPACE))
+		{
+
+		}
 	}
 
 	private void scroll(float tpf)
 	{
-		float speed = 1.0F * tpf;
+		Area area = this.view.getArea();
+		AffineTransform t = area.getInnerNode().getTransform();
+
+		float speed = (float) (1.0F * (1 / t.getScaleX()) * tpf);
 
 		float x = 0.0F;
 		float y = 0.0F;
@@ -87,8 +99,6 @@ public class Controller {
 			y += -speed;
 		}
 
-		Area area = this.view.getArea();
-		AffineTransform t = area.getInnerNode().getTransform();
 		t.translate(x, y);
 	}
 
@@ -101,6 +111,7 @@ public class Controller {
 
 		MouseWheelEvent wheel = (MouseWheelEvent) e;
 
+		Point p = this.model.getAreaMousePoint();
 
 		Area area = this.view.getArea();
 		AffineTransform t = area.getInnerNode().getTransform();
@@ -110,17 +121,20 @@ public class Controller {
 
 		if(0 < r)
 		{
-			TransformUtil.scale(t, rate, 0, 0);
+			TransformUtil.scale(t, rate, p.x, p.y);
 		}
 
 		if(r < 0)
 		{
-			TransformUtil.scale(t, 1 / rate, 0, 0);
+			TransformUtil.scale(t, 1 / rate, p.x, p.y);
 		}
 
 	}
 
-	private void changeCell(float tpf, AWTEvent awt)
+
+
+	//移動時にマウスの位置を保存する。
+	private void updateMouse(float tpf, AWTEvent awt)
 	{
 		if( !(awt instanceof AWTEvent) )
 		{
@@ -128,40 +142,62 @@ public class Controller {
 		}
 
 		MouseEvent e = (MouseEvent) awt;
-		Point p = e.getPoint();
-		AffineTransform t = this.view.getArea().getInnerNode().getTransform();
+		Point p1 = e.getPoint();
 
-		try
-		{
-			t.inverseTransform(p, p);
-		}
-		catch (NoninvertibleTransformException e1)
-		{
-			e1.printStackTrace();
-		}
+		Node innerArea = this.view.getArea().getInnerNode();
+		this.view.inverseTransform(innerArea, p1, p1);
+		this.model.setAreaMousePoint(p1);
+
+
 
 		CellData data = this.model.getData();
+		int cellSize = data.getCellSize();
 
-		int cellX = p.x / data.getCellSize();
-		int cellY = p.y / data.getCellSize();
-
-		System.out.println(cellX);
-		System.out.println(cellY);
-
-		if(e.getButton() == MouseEvent.BUTTON1)
+		Point p2 = this.model.getAreaCell();
+		if(p2 == null)
 		{
-			data.setCell(true, cellX, cellY);
+			p2 = new Point();
 		}
 
-		if(e.getButton() == MouseEvent.BUTTON2)
-		{
-			data.setCell(false, cellX, cellY);
-		}
+		p2.setLocation(
+				Math.floorDiv(p1.x, cellSize),
+				Math.floorDiv(p1.y, cellSize)
+				);
+
+		this.model.setAreaCell(p2);
 
 
 	}
 
 
+	private void clickCell(float tpf, AWTEvent awt)
+	{
+		if( !(awt instanceof AWTEvent) )
+		{
+			return;
+		}
+
+		MouseEvent e = (MouseEvent) awt;
+		this.updateMouse(tpf, awt);
+
+
+		CellData data = this.model.getData();
+		Point p = this.model.getAreaCell();
+
+		if(e.getButton() == MouseEvent.BUTTON1)
+		{
+			data.setCell(true, p.x, p.y);
+		}
+
+		if(e.getButton() == MouseEvent.BUTTON2)
+		{
+			data.setCell(false, p.x, p.y);
+		}
+
+
+	}
+
+	//すべてのセルを遷移させる。
 	private void step(float tpf)
 	{
 		this.temp.clear();
@@ -198,6 +234,7 @@ public class Controller {
 
 	}
 
+	//セルをチャンク単位で遷移させる。
 	private long stepChunk(CellData data, long x, long y)
 	{
 		int w = data.getChunkWidth();

@@ -31,7 +31,7 @@ public class CellData {
 
 	public void setCell(boolean b, long cellX, long cellY)
 	{
-		long chunkX = cellX / this.getChunkWidth();
+		long chunkX = Math.floorDiv(cellX, this.getChunkWidth());
 		cellX = cellX - (chunkX * this.getChunkWidth());
 
 		this.setCell(b, chunkX, cellY, cellX);
@@ -41,7 +41,7 @@ public class CellData {
 	{
 
 		long chunk = this.get(x, y);
-		long mask = 1 << cellX;
+		long mask = 0x8000_0000_0000_0000L >>> cellX;
 
 		if(b)
 		{
@@ -116,6 +116,11 @@ public class CellData {
 		}
 
 		this.data.put(key, chunk);
+	}
+
+	public void add(long chunk, long x, long y)
+	{
+		this.set(this.get(x, y) | chunk, x, y);
 	}
 
 	public Iterator<Output> iterator()
