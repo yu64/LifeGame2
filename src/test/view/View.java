@@ -4,16 +4,19 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+
+import javax.swing.JButton;
 
 import canvas2.App;
 import canvas2.util.CastUtil;
 import canvas2.util.GraphicsUtil;
 import canvas2.util.Pool;
 import canvas2.util.TransformUtil;
+import canvas2.view.AppWindow;
+import canvas2.view.JScreen;
 import canvas2.view.scene.Area;
 import canvas2.view.scene.Node;
 import test.model.CellData;
@@ -58,14 +61,26 @@ public class View {
 
 		Node root = app.getRootNode();
 
+
+
+
 		this.menu = new Node("menu");
 		this.menu.getTransform().translate(0, 0);
 		this.menu.add(this::drawMenu);
-		root.add(this.menu);
+		JScreen menu = new JScreen(this.menu);
+		menu.setBounds(0, 0, w, View.MENU_HEIGHT);
+
+		JButton button = new JButton("button");
+		menu.add(button);
+
+		AppWindow win = app.getWindow();
+		JScreen screen = win.getScreen();
+		screen.setLayout(null);
+		screen.add(menu);
 
 		this.area = new Area("areaFrame", "area");
 		this.area.getTransform().translate(0, View.MENU_HEIGHT);
-		this.area.setShape(new Rectangle(w, h - View.MENU_HEIGHT));
+		this.area.setShape(null);
 		root.add(this.area);
 
 
@@ -73,6 +88,7 @@ public class View {
 		innerArea.getTransform().translate(0, 0);
 		innerArea.add(this::drawArea);
 		innerArea.add(this::drawCursor);
+
 
 
 	}
@@ -92,6 +108,7 @@ public class View {
 		Dimension s = this.app.getWindow().getScreenSize();
 		int w = s.width;
 		int h = s.height - View.MENU_HEIGHT;
+
 
 		//エリア内の描画範囲を求める。
 		Point p1 = this.pool.obtain(Point.class);

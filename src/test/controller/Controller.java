@@ -6,14 +6,15 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
+import java.util.Set;
 
 import canvas2.App;
 import canvas2.event.EventManager;
-import canvas2.event.awt.AwtListener;
 import canvas2.logic.AppLogic;
 import canvas2.time.TimeInterval;
 import canvas2.util.Direction;
 import canvas2.util.TransformUtil;
+import canvas2.util.flag.ToggleFlags;
 import canvas2.value.KeyFlags;
 import canvas2.view.scene.Area;
 import canvas2.view.scene.Node;
@@ -29,6 +30,7 @@ public class Controller {
 	private View view;
 
 	private KeyFlags keys;
+	private ToggleFlags<Integer> toggleKeys;
 	private TimeInterval interval;
 	private CellData temp = new CellData();
 
@@ -38,17 +40,20 @@ public class Controller {
 		this.model = model;
 		this.view = view;
 
-		this.keys = new KeyFlags(
-				KeyEvent.VK_W,
-				KeyEvent.VK_A,
-				KeyEvent.VK_S,
-				KeyEvent.VK_D,
-				KeyEvent.VK_SPACE
-				);
+		this.keys = new KeyFlags(Set.of(
+						KeyEvent.VK_W,
+						KeyEvent.VK_A,
+						KeyEvent.VK_S,
+						KeyEvent.VK_D,
+						KeyEvent.VK_SPACE
+					));
 
-		this.interval = new TimeInterval(500, this::step);
+		this.toggleKeys = new ToggleFlags<Integer>(false);
+		this.keys.setListener(this.toggleKeys);
 
-		Class<AwtListener> awt = AwtListener.class;
+		this.interval = new TimeInterval(100, this::step);
+
+		Class<AWTEvent> awt = AWTEvent.class;
 
 		EventManager event = app.getEventManager();
 		this.keys.registerTo(event);
@@ -59,13 +64,20 @@ public class Controller {
 		AppLogic logic = app.getLogic();
 		logic.add(this::scroll);
 		logic.add(this.interval);
+		logic.add(this::pause);
 	}
 
 	private void pause(float tpf)
 	{
-		if(this.keys.isPressed(KeyEvent.VK_SPACE))
-		{
+		boolean isPause = this.toggleKeys.isTrue(KeyEvent.VK_SPACE);
 
+		if(isPause)
+		{
+			this.interval.enablePause();
+		}
+		else
+		{
+			this.interval.disablePause();
 		}
 	}
 
@@ -189,7 +201,7 @@ public class Controller {
 			data.setCell(true, p.x, p.y);
 		}
 
-		if(e.getButton() == MouseEvent.BUTTON2)
+		if(e.getButton() == MouseEvent.BUTTON3)
 		{
 			data.setCell(false, p.x, p.y);
 		}
