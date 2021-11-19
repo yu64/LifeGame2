@@ -1,4 +1,4 @@
-package test.model;
+package life_game2.model;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,6 +55,27 @@ public class CellData {
 		this.set(chunk, x, y);
 	}
 
+	public boolean getCell(long cellX, long cellY)
+	{
+		long chunkX = Math.floorDiv(cellX, this.getChunkWidth());
+		cellX = cellX - (chunkX * this.getChunkWidth());
+
+		return this.getCell(chunkX, cellY, cellX);
+	}
+
+	public boolean getCell(long x, long y, long cellX)
+	{
+		long chunk = this.get(x, y);
+		long mask = 0x8000_0000_0000_0000L >>> cellX;
+
+		if((chunk & mask) == mask)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 
 	public long get(long x, long y, Direction d)
 	{
@@ -63,8 +84,8 @@ public class CellData {
 
 	public long get(long x, long y)
 	{
-		long min = Long.MIN_VALUE;
-		long max = Long.MAX_VALUE;
+		long min = Integer.MIN_VALUE;
+		long max = Integer.MAX_VALUE;
 
 		if(min >= x || x >= max)
 		{
@@ -93,8 +114,8 @@ public class CellData {
 
 	public void set(long chunk, long x, long y)
 	{
-		long min = Long.MIN_VALUE;
-		long max = Long.MAX_VALUE;
+		long min = Integer.MIN_VALUE;
+		long max = Integer.MAX_VALUE;
 		String key = x + ":" + y;
 
 		if(min >= x || x >= max)

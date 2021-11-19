@@ -1,5 +1,6 @@
-package test.view;
+package life_game2.view;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -8,26 +9,24 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import javax.swing.JButton;
-
 import canvas2.App;
 import canvas2.util.CastUtil;
 import canvas2.util.GraphicsUtil;
 import canvas2.util.Pool;
 import canvas2.util.TransformUtil;
-import canvas2.view.AppWindow;
 import canvas2.view.JScreen;
 import canvas2.view.scene.Area;
 import canvas2.view.scene.Node;
-import test.model.CellData;
-import test.model.Model;
+import life_game2.model.CellData;
+import life_game2.model.Model;
+import life_game2.swing.Menu;
 
 public class View {
 
 	private static int MENU_HEIGHT = 30;
 	private App app;
 	private Model model;
-	private Node menu;
+	private Menu menu;
 	private Area area;
 
 	private Pool pool = new Pool();
@@ -54,53 +53,26 @@ public class View {
 				1
 				);
 
-		Dimension s = this.app.getWindow().getScreenSize();
-		int w = s.width;
-		int h = s.height;
-
 
 		Node root = app.getRootNode();
 
-
-
-
-		this.menu = new Node("menu");
-		this.menu.getTransform().translate(0, 0);
-		this.menu.add(this::drawMenu);
-		JScreen menu = new JScreen(this.menu);
-		menu.setBounds(0, 0, w, View.MENU_HEIGHT);
-
-		JButton button = new JButton("button");
-		menu.add(button);
-
-		AppWindow win = app.getWindow();
-		JScreen screen = win.getScreen();
-		screen.setLayout(null);
-		screen.add(menu);
 
 		this.area = new Area("areaFrame", "area");
 		this.area.getTransform().translate(0, View.MENU_HEIGHT);
 		this.area.setShape(null);
 		root.add(this.area);
 
+		this.menu = new Menu(app, model, View.MENU_HEIGHT);
+		JScreen screen = this.app.getWindow().getScreen();
+		screen.add(this.menu, BorderLayout.NORTH);
 
 		Node innerArea = this.area.getInnerNode();
 		innerArea.getTransform().translate(0, 0);
 		innerArea.add(this::drawArea);
 		innerArea.add(this::drawCursor);
 
-
-
 	}
 
-	private void drawMenu(Graphics2D g2)
-	{
-		Dimension s = this.app.getWindow().getScreenSize();
-		int w = s.width;
-
-		g2.setColor(Color.WHITE);
-		g2.fillRect(0, 0, w, View.MENU_HEIGHT);
-	}
 
 	private void drawArea(Graphics2D g2)
 	{
@@ -189,6 +161,7 @@ public class View {
 			}
 		}
 
+
 		if(cellSize * t.getScaleX() < 3)
 		{
 			return;
@@ -256,7 +229,7 @@ public class View {
 		return temp;
 	}
 
-	public Node getMenu()
+	public Menu getMenu()
 	{
 		return menu;
 	}

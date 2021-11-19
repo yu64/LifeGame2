@@ -1,4 +1,4 @@
-package test;
+package life_game2;
 
 import java.awt.AWTEvent;
 import java.awt.event.WindowEvent;
@@ -6,10 +6,10 @@ import java.awt.event.WindowEvent;
 import canvas2.App;
 import canvas2.event.EventManager;
 import canvas2.view.AppWindow;
-import test.controller.Controller;
-import test.model.CellData;
-import test.model.Model;
-import test.view.View;
+import life_game2.controller.Controller;
+import life_game2.model.CellData;
+import life_game2.model.Model;
+import life_game2.view.View;
 
 public class Main {
 
@@ -38,12 +38,12 @@ public class Main {
 		data.add(0x7000_0000_0000_0000L, 0, 1);
 
 
-		Main.set(data, 0);
+		Main.setNebula(data, 0);
 
 		app.start();
 	}
 
-	private static void set(CellData data, int y)
+	private static void setNebula(CellData data, int y)
 	{
 		data.add(0b110111111L, 0, y);
 		data.add(0b110111111L, 0, y + 1);
