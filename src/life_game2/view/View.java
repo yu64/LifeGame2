@@ -15,8 +15,8 @@ import canvas2.util.GraphicsUtil;
 import canvas2.util.Pool;
 import canvas2.util.TransformUtil;
 import canvas2.view.JScreen;
-import canvas2.view.scene.Area;
 import canvas2.view.scene.Node;
+import canvas2.view.scene.Pane;
 import life_game2.model.CellData;
 import life_game2.model.Model;
 import life_game2.swing.Menu;
@@ -27,7 +27,7 @@ public class View {
 	private App app;
 	private Model model;
 	private Menu menu;
-	private Area area;
+	private Pane area;
 
 	private Pool pool = new Pool();
 
@@ -57,7 +57,7 @@ public class View {
 		Node root = app.getRootNode();
 
 
-		this.area = new Area("areaFrame", "area");
+		this.area = new Pane("areaFrame", "area");
 		this.area.getTransform().translate(0, View.MENU_HEIGHT);
 		this.area.setShape(null);
 		root.add(this.area);
@@ -234,7 +234,7 @@ public class View {
 		return menu;
 	}
 
-	public Area getArea()
+	public Pane getArea()
 	{
 		return this.area;
 	}
