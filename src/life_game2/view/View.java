@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class View {
 	private Menu menu;
 	private Pane area;
 
+	private CellDrawer cellDrawer = new CellDrawer();
 	private Pool pool = new Pool();
 
 
@@ -70,6 +72,7 @@ public class View {
 		innerArea.getTransform().translate(0, 0);
 		innerArea.add(this::drawArea);
 		innerArea.add(this::drawCursor);
+		innerArea.add(this::drawSelectedCursor);
 
 	}
 
@@ -95,7 +98,6 @@ public class View {
 
 		//セル単位で、画面の描画範囲を求める。
 		CellData data = this.model.getData();
-		int chunkWidth = data.getChunkWidth();
 		int cellSize = data.getCellSize();
 
 		int minX = (int) Math.floor(p1.x / cellSize) - 1;
@@ -112,55 +114,7 @@ public class View {
 				p2.y - p1.y + 2
 				);
 
-		//セルを描画する。
-		g2.setColor(Color.GREEN);
-
-		for(int x = minX; x <= maxX; x++)
-		{
-			for(int y = minY; y <= maxY; y++)
-			{
-				int chunkX = Math.floorDiv(x, chunkWidth);
-				int chunkY = y;
-
-				long chunk = data.get(chunkX, chunkY);
-
-				if(chunk == 0L)
-				{
-					continue;
-				}
-
-				if(chunk == 0xFFFF_FFFF_FFFF_FFFFL)
-				{
-					int cellX = chunkX * chunkWidth;
-
-					g2.fillRect(
-							cellX * cellSize,
-							chunkY * cellSize,
-							cellSize * chunkWidth,
-							cellSize
-							);
-
-					continue;
-				}
-
-				while(chunk != 0L)
-				{
-					long bit = chunk & (-chunk);
-					int index = Long.bitCount(~(bit - 1) ) - 1;
-					int cellX = chunkX * chunkWidth + index;
-
-					g2.fillRect(
-							cellX * cellSize,
-							chunkY * cellSize,
-							cellSize,
-							cellSize
-							);
-
-					chunk = chunk & ~bit;
-				}
-			}
-		}
-
+		this.cellDrawer.draw(g2, data, minX, minY, maxX, maxY);
 
 		if(cellSize * t.getScaleX() < 3)
 		{
@@ -196,6 +150,29 @@ public class View {
 				cellSize
 				);
 
+	}
+
+	private void drawSelectedCursor(Graphics2D g2)
+	{
+		boolean isSelected = this.model.isSelected();
+
+		if(!isSelected)
+		{
+			return;
+		}
+
+		CellData data = this.model.getData();
+		int cellSize = data.getCellSize();
+
+		Rectangle rect = this.model.getSelectedRect();
+
+		g2.setColor(Color.LIGHT_GRAY);
+		g2.drawRect(
+				rect.x * cellSize,
+				rect.y * cellSize,
+				rect.width * cellSize,
+				rect.height * cellSize
+				);
 	}
 
 

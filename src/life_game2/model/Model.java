@@ -1,6 +1,7 @@
 package life_game2.model;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 
 import canvas2.App;
 
@@ -13,6 +14,8 @@ public class Model {
 	private int stepWait = 500;
 	private boolean isPause = false;
 
+	private Rectangle selectedRect;
+	private boolean isSelected = false;
 
 	public Model(App app)
 	{
@@ -64,6 +67,33 @@ public class Model {
 	{
 		this.isPause = isPause;
 	}
+
+
+	public Rectangle getSelectedRect()
+	{
+		return selectedRect;
+	}
+
+
+	public void setSelectedRect(Rectangle selectedRect)
+	{
+		this.selectedRect = selectedRect;
+	}
+
+
+	public boolean isSelected()
+	{
+		return isSelected;
+	}
+
+
+	public void setSelected(boolean isSelected)
+	{
+		this.isSelected = isSelected;
+	}
+
+
+
 
 
 }

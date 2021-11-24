@@ -29,10 +29,20 @@ public class CellData {
 		this.data.clear();
 	}
 
+	private long getChunkX(long cellX)
+	{
+		return Math.floorDiv(cellX, this.getChunkWidth());
+	}
+
+	private long getRemainingCellX(long chunkX, long cellX)
+	{
+		return cellX - (chunkX * this.getChunkWidth());
+	}
+
 	public void setCell(boolean b, long cellX, long cellY)
 	{
-		long chunkX = Math.floorDiv(cellX, this.getChunkWidth());
-		cellX = cellX - (chunkX * this.getChunkWidth());
+		long chunkX = this.getChunkX(cellX);
+		cellX = this.getRemainingCellX(chunkX, cellX);
 
 		this.setCell(b, chunkX, cellY, cellX);
 	}
@@ -57,8 +67,8 @@ public class CellData {
 
 	public boolean getCell(long cellX, long cellY)
 	{
-		long chunkX = Math.floorDiv(cellX, this.getChunkWidth());
-		cellX = cellX - (chunkX * this.getChunkWidth());
+		long chunkX = this.getChunkX(cellX);
+		cellX = this.getRemainingCellX(chunkX, cellX);
 
 		return this.getCell(chunkX, cellY, cellX);
 	}
@@ -144,6 +154,61 @@ public class CellData {
 		this.set(this.get(x, y) | chunk, x, y);
 	}
 
+
+
+	public String[] getFromRect(long cellX, long cellY, long width, long height)
+	{
+		int chunkWidth = this.getChunkWidth();
+
+		long chunkMinX = this.getChunkX(cellX);
+		long cellMinX = this.getRemainingCellX(chunkMinX, cellX);
+
+		long chunkMaxX = this.getChunkX(cellX + width);
+		long cellMaxX = this.getRemainingCellX(chunkMaxX, cellX + width);
+
+
+		for(long chunkY = cellY; chunkY <= cellY + height; chunkY++)
+		{
+			String s = "";
+
+			//左端
+			for(long x = chunkWidth - cellMinX; x <= chunkWidth; x++)
+			{
+				boolean b = this.getCell(chunkMinX, chunkY, x);
+				s += (b ? "1" : "0");
+			}
+
+			for(long chunkX = chunkMinX + 1; chunkX < chunkMaxX; chunkX++)
+			{
+				String chunkText = Long.toBinaryString(this.get(chunkX, chunkY));
+				int zeroLen = chunkWidth - chunkText.length();
+				chunkText = "0".repeat(zeroLen) + chunkText;
+
+				s += chunkText;
+			}
+
+			//右端
+			for(long x = 0; x <= cellMaxX; x++)
+			{
+				boolean b = this.getCell(chunkMaxX, chunkY, x);
+				s += (b ? "1" : "0");
+			}
+		}
+
+
+
+	}
+
+
+	public void setAll(String data, long x, long y)
+	{
+
+	}
+
+
+
+
+
 	public Iterator<Output> iterator()
 	{
 		return new CellIterator();
@@ -153,8 +218,6 @@ public class CellData {
 	{
 		return this::iterator;
 	}
-
-
 
 
 	public class CellIterator implements Iterator<Output>
