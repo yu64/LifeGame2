@@ -184,6 +184,8 @@ public class CellData {
 				int zeroLen = chunkWidth - chunkText.length();
 				chunkText = "0".repeat(zeroLen) + chunkText;
 
+				Charactor
+
 				s += chunkText;
 			}
 
