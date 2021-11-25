@@ -17,6 +17,12 @@ public class Model {
 	private Rectangle selectedRect;
 	private boolean isSelected = false;
 
+	private boolean isOverwritePaste = false;
+
+
+
+
+
 	public Model(App app)
 	{
 
@@ -80,18 +86,26 @@ public class Model {
 		this.selectedRect = selectedRect;
 	}
 
-
 	public boolean isSelected()
 	{
 		return isSelected;
 	}
-
 
 	public void setSelected(boolean isSelected)
 	{
 		this.isSelected = isSelected;
 	}
 
+
+	public boolean isOverwritePaste()
+	{
+		return isOverwritePaste;
+	}
+
+	public void setOverwritePaste(boolean isOverwritePaste)
+	{
+		this.isOverwritePaste = isOverwritePaste;
+	}
 
 
 

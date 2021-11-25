@@ -107,7 +107,7 @@ public class MouseUpdater implements Registerable, AwtListener, Updatable{
 		this.model.setAreaCell(p2);
 
 		JLabel label = this.view.getMenu().getPosLabel();
-		label.setText("座標: x= " + p2.x + ", y= " + p2.y);
+		label.setText("x= " + p2.x + " , y= " + p2.y);
 	}
 
 

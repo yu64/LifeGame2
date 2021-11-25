@@ -31,16 +31,16 @@ public class CellStep implements Updatable{
 
 		for(Output o : data.iterable())
 		{
-			long x = o.getX();
-			long y = o.getY();
+			int x = o.getX();
+			int y = o.getY();
 
 			long nextCenter = this.stepChunk(data, x, y);
 			this.temp.set(nextCenter, x, y);
 
 			for(Direction d : Direction.values())
 			{
-				long x2 = x + d.getX();
-				long y2 = y + d.getY();
+				int x2 = x + d.getX();
+				int y2 = y + d.getY();
 
 				if(this.temp.get(x2, y2) == 0)
 				{
@@ -50,18 +50,18 @@ public class CellStep implements Updatable{
 			}
 		}
 
-		data.clear();
-		for(Output o : this.temp.iterable())
+		synchronized (data)
 		{
-			data.set(o.getValue(), o.getX(), o.getY());
+			data.clear();
+			for(Output o : this.temp.iterable())
+			{
+				data.set(o.getValue(), o.getX(), o.getY());
+			}
 		}
-
-
-
 	}
 
 	//セルをチャンク単位で遷移させる。
-	protected long stepChunk(CellData data, long x, long y)
+	protected long stepChunk(CellData data, int x, int y)
 	{
 		int w = data.getChunkWidth();
 		long chunk = data.get(x, y);

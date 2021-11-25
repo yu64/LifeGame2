@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.Set;
 
+import javax.swing.JLabel;
+
 import canvas2.App;
 import canvas2.core.Updatable;
 import canvas2.core.event.Registerable;
@@ -65,6 +67,7 @@ public class MouseController implements Registerable, Updatable{
 
 		this.buttons.setListener((s, id, p, n) -> this.table.tryMoveState());
 
+		this.setSelectedLabel(0, 0, 0, 0);
 	}
 
 	public boolean isSelected()
@@ -86,6 +89,8 @@ public class MouseController implements Registerable, Updatable{
 		event.add(AWTEvent.class, MouseEvent.MOUSE_PRESSED, this::doMouseAction);
 		event.add(AWTEvent.class, MouseEvent.MOUSE_RELEASED, this::doMouseAction);
 		event.add(AWTEvent.class, MouseEvent.MOUSE_DRAGGED, this::doMouseAction);
+		event.add(AWTEvent.class, MouseEvent.MOUSE_CLICKED, this::doMouseAction);
+
 	}
 
 	@Override
@@ -96,6 +101,8 @@ public class MouseController implements Registerable, Updatable{
 		event.remove(AWTEvent.class, MouseEvent.MOUSE_PRESSED, this::doMouseAction);
 		event.remove(AWTEvent.class, MouseEvent.MOUSE_RELEASED, this::doMouseAction);
 		event.remove(AWTEvent.class, MouseEvent.MOUSE_DRAGGED, this::doMouseAction);
+		event.remove(AWTEvent.class, MouseEvent.MOUSE_CLICKED, this::doMouseAction);
+
 	}
 
 	private void startSelected(StateTable<Mode> src, Mode now, Mode prev)
@@ -151,7 +158,7 @@ public class MouseController implements Registerable, Updatable{
 	/**
 	 * マウス操作中に実行される処理。
 	 */
-	private void doMouseAction(float tpf, AWTEvent awt)
+	private void doMouseAction(float tpf, AWTEvent awt) throws Exception
 	{
 		if(awt.getSource() != this.app.getWindow().getScreen())
 		{
@@ -163,7 +170,9 @@ public class MouseController implements Registerable, Updatable{
 		CellData data = this.model.getData();
 		Point p = this.model.getAreaCell();
 
+		this.buttons.act(tpf, awt);
 		Mode state = this.table.getState();
+
 
 		if(state == Mode.SET_DEAD)
 		{
@@ -183,12 +192,27 @@ public class MouseController implements Registerable, Updatable{
 					p
 					);
 
+			int x = this.selectedRect.x;
+			int y = this.selectedRect.y;
 			int w = this.selectedRect.width + 1;
 			int h = this.selectedRect.height + 1;
 			this.selectedRect.setSize(w, h);
 
+			this.setSelectedLabel(x, y, w, h);
 		}
 
+		if(!this.isSelected())
+		{
+			this.setSelectedLabel(0, 0, 0, 0);
+		}
+
+	}
+
+	private void setSelectedLabel(int x, int y, int w, int h)
+	{
+		String format = "x= %d, y= %d, w= %d, h= %d";
+		JLabel label = this.view.getMenu().getSelectedLabel();
+		label.setText(String.format(format, x, y, w, h));
 	}
 
 	private enum Mode implements State {

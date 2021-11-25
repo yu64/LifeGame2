@@ -17,11 +17,14 @@ public class CellDrawer{
 		//セルを描画する。
 		g2.setColor(Color.GREEN);
 
-		for(int x = minX; x <= maxX; x++)
+		int chunkMinX = data.getChunkX(minX);
+		int chunkMaxX = data.getChunkX(maxX);
+
+		for(int x = chunkMinX; x <= chunkMaxX; x++)
 		{
 			for(int y = minY; y <= maxY; y++)
 			{
-				int chunkX = Math.floorDiv(x, chunkWidth);
+				int chunkX = x;
 				int chunkY = y;
 
 				long chunk = data.get(chunkX, chunkY);

@@ -2,6 +2,8 @@ package life_game2.controller;
 
 import java.awt.Rectangle;
 
+import javax.swing.JLabel;
+
 import canvas2.App;
 import canvas2.event.EventManager;
 import canvas2.logic.AppLogic;
@@ -45,8 +47,7 @@ public class Controller {
 		logic.add(this.keys);
 		logic.add(this.mouse);
 		logic.add(this.stepInterval);
-		logic.add(this::updateValueFromModel);
-
+		logic.add(this::syncValue);
 
 	}
 
@@ -55,9 +56,9 @@ public class Controller {
 
 
 	/**
-	 * モデル上の値からオブジェクトの値を変更する。
+	 * オブジェクトの値を同期する。
 	 */
-	private void updateValueFromModel(float tpf)
+	private void syncValue(float tpf)
 	{
 		int wait = this.model.getStepWait();
 		this.stepInterval.setIntervalTime(wait);
@@ -79,6 +80,13 @@ public class Controller {
 
 		boolean isSelected = this.mouse.isSelected();
 		this.model.setSelected(isSelected);
+
+
+
+		float fps = this.app.getLogic().getFps();
+		JLabel label = this.view.getMenu().getFpsLabel();
+
+		label.setText(String.format("%.2f", fps));
 	}
 
 

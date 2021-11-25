@@ -2,6 +2,11 @@ package life_game2.controller;
 
 import java.awt.AWTEvent;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
@@ -44,10 +49,7 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 				KeyEvent.VK_S,
 				KeyEvent.VK_D,
 				KeyEvent.VK_SPACE,
-				KeyEvent.VK_SHIFT,
-				KeyEvent.VK_C,
-				KeyEvent.VK_V,
-				KeyEvent.VK_CONTROL
+				KeyEvent.VK_SHIFT
 			));
 
 		this.keys.setListener(this);
@@ -60,6 +62,7 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 	{
 		this.keys.registerTo(event);
 		event.add(AWTEvent.class, MouseWheelEvent.MOUSE_WHEEL, this);
+		event.add(AWTEvent.class, KeyEvent.KEY_PRESSED, this);
 	}
 
 
@@ -68,19 +71,23 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 	{
 		this.keys.unregisterTo(event);
 		event.remove(AWTEvent.class, MouseWheelEvent.MOUSE_WHEEL, this);
+		event.remove(AWTEvent.class, KeyEvent.KEY_PRESSED, this);
 	}
 
 	@Override
 	public void act(float tpf, AWTEvent e) throws Exception
 	{
 		this.zoom(tpf, e);
+		this.copy(tpf, e);
+		this.paste(tpf, e);
+		this.fill(tpf, e);
 	}
 
 	@Override
 	public void update(float tpf) throws Exception
 	{
 		this.scroll(tpf);
-		this.copy(tpf);
+
 	}
 
 	@Override
@@ -111,18 +118,113 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 		playButton.setSelected(!isPause);
 	}
 
-	/**
-	 * 選択範囲をコピーする。
-	 */
-	private void copy(float tpf)
+	private void fill(float tpf, AWTEvent awt)
 	{
+
+		if( !(awt instanceof KeyEvent))
+		{
+			return;
+		}
+
+		KeyEvent e = (KeyEvent) awt;
+
+		if(!e.isControlDown() || !(e.getKeyCode() == KeyEvent.VK_F))
+		{
+			return;
+		}
+
 		boolean isSelected = this.model.isSelected();
 		if(!isSelected)
 		{
 			return;
 		}
 
+		Rectangle rect = this.model.getSelectedRect();
 		CellData data = this.model.getData();
+		Point p = this.model.getAreaCell();
+
+		int w = rect.width;
+		int h = rect.height;
+
+		boolean b = data.getCell(p.x, p.y);
+
+		String text = data.createFillRect(w, h, b);
+		data.setFromRect(text, rect.x, rect.y, true);
+	}
+
+
+	/**
+	 * 選択範囲をコピーする。
+	 */
+	private void copy(float tpf, AWTEvent awt)
+	{
+		if( !(awt instanceof KeyEvent))
+		{
+			return;
+		}
+
+		KeyEvent e = (KeyEvent) awt;
+
+		if(!e.isControlDown() || !(e.getKeyCode() == KeyEvent.VK_C))
+		{
+			return;
+		}
+
+
+		boolean isSelected = this.model.isSelected();
+		if(!isSelected)
+		{
+			return;
+		}
+
+		Rectangle rect = this.model.getSelectedRect();
+
+		CellData data = this.model.getData();
+		String text = data.getFromRect(rect.x, rect.y, rect.width, rect.height);
+
+		Toolkit kit = Toolkit.getDefaultToolkit();
+		Clipboard clip = kit.getSystemClipboard();
+
+		StringSelection ss = new StringSelection(text);
+		clip.setContents(ss, ss);
+
+	}
+
+	private void paste(float tpf, AWTEvent awt)
+	{
+		if( !(awt instanceof KeyEvent))
+		{
+			return;
+		}
+
+		KeyEvent e = (KeyEvent) awt;
+
+		if(!e.isControlDown() || !(e.getKeyCode() == KeyEvent.VK_V))
+		{
+			return;
+		}
+
+		CellData data = this.model.getData();
+		Point p = this.model.getAreaCell();
+
+		Toolkit kit = Toolkit.getDefaultToolkit();
+		Clipboard clip = kit.getSystemClipboard();
+
+		try
+		{
+			String text = (String)clip.getData(DataFlavor.stringFlavor);
+			if(!text.matches(data.getRectPattern()))
+			{
+				throw new RuntimeException("No cell data");
+			}
+
+			boolean mode = this.model.isOverwritePaste();
+			data.setFromRect(text, p.x, p.y, mode);
+		}
+		catch (Exception e1)
+		{
+			e1.printStackTrace();
+		}
 
 	}
 
@@ -174,6 +276,11 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 	private void zoom(float tpf, AWTEvent awt)
 	{
 		if(awt.getSource() != this.app.getWindow().getScreen())
+		{
+			return;
+		}
+
+		if( !(awt instanceof MouseWheelEvent))
 		{
 			return;
 		}
