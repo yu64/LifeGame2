@@ -10,8 +10,8 @@ import javax.swing.JLabel;
 
 import canvas2.App;
 import canvas2.core.Updatable;
-import canvas2.core.event.Registerable;
 import canvas2.event.EventManager;
+import canvas2.event.Registerable;
 import canvas2.event.flag.ButtonFlags;
 import canvas2.state.StateTable;
 import canvas2.state.obj.State;
@@ -62,10 +62,9 @@ public class MouseController implements Registerable, Updatable{
 		this.table.set(Mode.END_SELECT, Mode.SET_DEAD, this::isAlivePressedLeft);
 		this.table.set(Mode.END_SELECT, Mode.START_SELECT, this::pressedRight);
 
-		this.table.setChange(Mode.INIT, Mode.START_SELECT, this::startSelected);
-		this.table.setChange(Mode.END_SELECT, Mode.START_SELECT, this::startSelected);
+		this.table.setEnterListener(Mode.START_SELECT, this::startSelected);
 
-		this.buttons.setListener((s, id, p, n) -> this.table.tryMoveState());
+		this.buttons.setChangeListener((s, id, p, n, b) -> this.table.tryMoveState());
 
 		this.setSelectedLabel(0, 0, 0, 0);
 	}
@@ -105,7 +104,7 @@ public class MouseController implements Registerable, Updatable{
 
 	}
 
-	private void startSelected(StateTable<Mode> src, Mode now, Mode prev)
+	private void startSelected(StateTable<Mode> src, Mode now, Mode next)
 	{
 		Point p = this.model.getAreaCell();
 		this.selectedStart.setLocation(p);

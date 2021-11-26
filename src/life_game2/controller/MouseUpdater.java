@@ -8,8 +8,8 @@ import javax.swing.JLabel;
 
 import canvas2.App;
 import canvas2.core.Updatable;
-import canvas2.core.event.Registerable;
 import canvas2.event.EventManager;
+import canvas2.event.Registerable;
 import canvas2.event.awt.AwtListener;
 import canvas2.view.scene.Node;
 import life_game2.model.CellData;

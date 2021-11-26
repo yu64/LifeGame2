@@ -193,9 +193,6 @@ public class CellData {
 		int chunkMaxX = this.getChunkX(cellX + width);
 		int cellMaxX = this.getRemainingCellX(chunkMaxX, cellX + width);
 
-		System.out.println(cellMinX + " " + cellMaxX);
-		System.out.println(chunkMinX + " " + chunkMaxX);
-
 		String output = "";
 		for(int chunkY = cellY; chunkY <= cellY + height; chunkY++)
 		{

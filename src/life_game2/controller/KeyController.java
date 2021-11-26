@@ -16,8 +16,8 @@ import javax.swing.JToggleButton;
 
 import canvas2.App;
 import canvas2.core.Updatable;
-import canvas2.core.event.Registerable;
 import canvas2.event.EventManager;
+import canvas2.event.Registerable;
 import canvas2.event.awt.AwtListener;
 import canvas2.event.flag.KeyFlags;
 import canvas2.util.TransformUtil;
@@ -52,7 +52,7 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 				KeyEvent.VK_SHIFT
 			));
 
-		this.keys.setListener(this);
+		this.keys.setChangeListener(this);
 
 
 	}
@@ -91,8 +91,13 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 	}
 
 	@Override
-	public void onChange(Flags<Integer> src, Integer id, boolean prev, boolean next)
+	public void onChange(Flags<Integer> src, Integer id, boolean prev, boolean next, boolean isBefore)
 	{
+		if(isBefore)
+		{
+			return;
+		}
+
 		this.onChangeSpaceKey(src, id, prev, next);
 	}
 
