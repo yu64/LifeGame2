@@ -5,6 +5,7 @@ import java.awt.event.WindowEvent;
 
 import canvas2.App;
 import canvas2.event.EventManager;
+import canvas2.logic.AppLogic;
 import canvas2.view.AppWindow;
 import life_game2.controller.Controller;
 import life_game2.model.CellData;
@@ -32,6 +33,8 @@ public class Main {
 			app.close();
 		});
 
+		AppLogic logic = app.getLogic();
+		logic.setTargetFps(60.0F);
 
 		Model model = new Model(app);
 		View view = new View(app, model);
