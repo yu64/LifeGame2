@@ -26,10 +26,6 @@ public class CellData {
 		return 16;
 	}
 
-	public String getRectPattern()
-	{
-		return "(\r\n|\n|\r|[" + this.ALIVE + this.DEAD + this.LF + "])*";
-	}
 
 	public void clear()
 	{
@@ -254,12 +250,33 @@ public class CellData {
 
 	public void setFromRect(String rectData, int cellX, int cellY, boolean overwrite)
 	{
+		boolean isRle = RunLengthDecoder.isEncoded(rectData);
+
+		String rectPattern = "(\r\n|\n|\r|[0Oo1Bb$" + this.ALIVE + this.DEAD + this.LF + "])*";
+		boolean isPlain = rectData.matches(rectPattern);
+
+		if(!isPlain && !isRle)
+		{
+			throw new RuntimeException("No cell data");
+		}
+
+		if(isRle)
+		{
+			rectData = RunLengthDecoder.decode(rectData, this.DEAD, this.ALIVE, this.LF);
+		}
+
 
 		int x = cellX;
 		int y = cellY;
 
-		String p = "(\\n|\\r|\\r\\n)";
-		rectData = rectData.replaceAll(p, String.valueOf(this.LF));
+		String p1 = "(\\n|\\r|\\r\\n|\\$)";
+		rectData = rectData.replaceAll(p1, String.valueOf(this.LF));
+
+		String p2 = "[0Oo]";
+		rectData = rectData.replaceAll(p2, String.valueOf(this.ALIVE));
+
+		String p3 = "[1Bb]";
+		rectData = rectData.replaceAll(p3, String.valueOf(this.DEAD));
 
 
 		for(char c : rectData.toCharArray())

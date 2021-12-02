@@ -29,6 +29,7 @@ public class Menu extends JScreen{
 	private JLabel posLabel;
 	private JLabel fpsLabel;
 
+
 	public Menu(App app, Model model, int height)
 	{
 		super(g2 -> {});
@@ -97,7 +98,10 @@ public class Menu extends JScreen{
 		spinner.addChangeListener(e -> {
 
 			model.setStepWait((Integer)spinner.getValue());
+			app.getWindow().getScreen().requestFocusInWindow();
 		});
+
+
 
 		JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spinner.getEditor();
 		AbstractFormatter f = editor.getTextField().getFormatter();
@@ -197,6 +201,7 @@ public class Menu extends JScreen{
 		Dimension s = this.getSize();
 		g2.setBackground(Color.LIGHT_GRAY);
 		g2.clearRect(0, 0, s.width, s.height);
+
 	}
 
 

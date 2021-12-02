@@ -88,7 +88,6 @@ public class MouseController implements Registerable, Updatable{
 		event.add(AWTEvent.class, MouseEvent.MOUSE_PRESSED, this::doMouseAction);
 		event.add(AWTEvent.class, MouseEvent.MOUSE_RELEASED, this::doMouseAction);
 		event.add(AWTEvent.class, MouseEvent.MOUSE_DRAGGED, this::doMouseAction);
-		event.add(AWTEvent.class, MouseEvent.MOUSE_CLICKED, this::doMouseAction);
 
 	}
 
@@ -100,7 +99,6 @@ public class MouseController implements Registerable, Updatable{
 		event.remove(AWTEvent.class, MouseEvent.MOUSE_PRESSED, this::doMouseAction);
 		event.remove(AWTEvent.class, MouseEvent.MOUSE_RELEASED, this::doMouseAction);
 		event.remove(AWTEvent.class, MouseEvent.MOUSE_DRAGGED, this::doMouseAction);
-		event.remove(AWTEvent.class, MouseEvent.MOUSE_CLICKED, this::doMouseAction);
 
 	}
 
@@ -169,9 +167,8 @@ public class MouseController implements Registerable, Updatable{
 		CellData data = this.model.getData();
 		Point p = this.model.getAreaCell();
 
-		this.buttons.act(tpf, awt);
+		this.buttons.actAndThrow(tpf, awt);
 		Mode state = this.table.getState();
-
 
 		if(state == Mode.SET_DEAD)
 		{

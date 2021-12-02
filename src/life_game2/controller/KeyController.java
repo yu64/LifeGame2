@@ -23,6 +23,8 @@ import canvas2.event.flag.KeyFlags;
 import canvas2.util.TransformUtil;
 import canvas2.util.flag.Flags;
 import canvas2.util.flag.Flags.ChangeListener;
+import canvas2.view.AppWindow;
+import canvas2.view.JScreen;
 import canvas2.view.scene.Pane;
 import life_game2.model.CellData;
 import life_game2.model.Model;
@@ -107,6 +109,15 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 	 */
 	private void onChangeSpaceKey(Flags<Integer> src, Integer id, boolean prev, boolean next)
 	{
+		AppWindow win = this.app.getWindow();
+		JScreen screen = win.getScreen();
+
+		if(!screen.hasFocus())
+		{
+			screen.requestFocusInWindow();
+		}
+
+
 		if(id != KeyEvent.VK_SPACE)
 		{
 			return;
@@ -195,6 +206,9 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 
 	}
 
+	/**
+	 * 貼り付け
+	 */
 	private void paste(float tpf, AWTEvent awt)
 	{
 		if( !(awt instanceof KeyEvent))
@@ -218,10 +232,7 @@ public class KeyController implements Registerable, ChangeListener<Integer>, Awt
 		try
 		{
 			String text = (String)clip.getData(DataFlavor.stringFlavor);
-			if(!text.matches(data.getRectPattern()))
-			{
-				throw new RuntimeException("No cell data");
-			}
+
 
 			boolean mode = this.model.isOverwritePaste();
 			data.setFromRect(text, p.x, p.y, mode);
